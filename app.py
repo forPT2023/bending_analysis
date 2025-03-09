@@ -6,6 +6,7 @@ import tempfile
 import pandas as pd
 import plotly.express as px
 import os
+from utils import get_joint_angles
 
 # MediaPipeのセットアップ
 mp_pose = mp.solutions.pose
@@ -86,7 +87,7 @@ if uploaded_file:
                     return np.degrees(np.arccos(cosine_angle))
                 
                 hip_angle = 180 - calculate_angle(shoulder, hip, knee)
-                trunk_angle = 180 - calculate_angle(shoulder, hip, ankle)
+                _, trunk_angle = get_joint_angles(landmarks)
                 knee_angle = 180 - calculate_angle(hip, knee, ankle)
                 
                 if initial_hip_angle is None:
@@ -113,11 +114,11 @@ if uploaded_file:
     st.write("✅ 解析完了！")
     
     if initial_trunk_angle is not None:
-        trunk_range_of_motion = abs(initial_trunk_angle - max(df["体幹角度"])) if motion_type == "前屈" else abs(initial_trunk_angle - min(df["体幹角度"]))
+        trunk_range_of_motion = abs(initial_trunk_angle - max(df["体幹角度"])) if motion_type == "前屈" else abs(initial_trunk_angle - max(df["体幹角度"]))
         st.write(f"📊 深まり度（体幹角度変化）: {trunk_range_of_motion:.2f}°")
     
     if initial_hip_angle is not None:
-        hip_range_of_motion = abs(initial_hip_angle - max(df["股関節角度"])) if motion_type == "前屈" else abs(initial_hip_angle - min(df["股関節角度"]))
+        hip_range_of_motion = abs(initial_hip_angle - max(df["股関節角度"])) if motion_type == "前屈" else abs(initial_hip_angle - max(df["股関節角度"]))
         st.write(f"📊 股関節角度変化: {hip_range_of_motion:.2f}°")
     
     fig = px.line(df, x="Time (s)", y=["股関節角度", "体幹角度", "膝関節角度"],
